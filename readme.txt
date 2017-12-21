@@ -1,4 +1,7 @@
 
+pip install howdoi
+
+
 
 
 

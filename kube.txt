@@ -1,0 +1,204 @@
+
+
+Kube
+https://kubernetes.io/docs/tasks/tools/install-kubectl/
+
+By default, kubectl configuration is located at ~/.kube/config.
+
+Check that kubectl is properly configured by getting the cluster state:
+kubectl cluster-info
+
+1. Install kubectl
+
+2. Install Helm & Tiller
+https://github.com/kubernetes/helm/blob/master/docs/quickstart.md
+https://docs.helm.sh/using_helm/#quickstart-guide
+
+
+https://hub.kubeapps.com/
+https://github.com/kubernetes/charts/tree/master/stable
+
+Core DNS
+https://github.com/kubernetes/charts/tree/master/stable/coredns
+https://community.infoblox.com/t5/Community-Blog/CoreDNS-for-Kubernetes-Service-Discovery/ba-p/8187
+https://github.com/coredns/coredns
+- Dns server that chains plugins.  Thats one imporvement over kubedns.  very helpful for Promethus logging.
+https://thenewstack.io/coredns-offers-a-speedy-dns-service-for-the-microservices-era/
+
+
+
+Typically you will use an existing Ingress controller that controls a third party balancer like HAProxy, NGINX, Vulcand or Traefik.
+I think with CoreDNS instead of setting up Ingress controllers in the yaml file, we do a CoreDNS file
+https://stackpointcloud.com/community/tutorial/configure-and-manage-a-kubernetes-haproxy-ingress-controller
+
+https://techbeacon.com/one-year-using-kubernetes-production-lessons-learned
+
+
+Look into terraform vs salt. Can they both also control macs? Windows?
+
+https://www.outcoldman.com/en/archive/2017/06/20/using-kubeadm-to-create-kubernetes-on-ubuntu-server/
+
+
+
+Using The tectonic installer i believe forces use of Docker as container runtime, maybe also rkt but what about cri-o
+
+
+# Dev
+
+# Start a Kubernetes Server Locally
+minikube start
+
+kubectl create -f ~/src/deployments/ncl-com-service.yaml
+kubectl get svc my-service
+kubectl get ep my-service
+kubectl describe svc my-service
+
+
+kubectl delete services my-service
+kubectl delete deployment hello-world
+
+
+# Create the service file automatically from a Depyloyment
+kubectl expose deployment/my-nginx
+
+
+https://kubernetes.io/docs/concepts/services-networking/connect-applications-service/
+https://github.com/kubernetes/examples/tree/master/staging/https-nginx/
+
+https://kubernetes.io/docs/concepts/services-networking/connect-applications-service/
+
+kubectl create -f deployment/run-my-nginx.yaml
+kubectl get pods -l run=my-nginx -o wide
+kubectl get pods -l run=my-nginx -o yaml | grep podIP
+
+
+kubectl expose deployment/my-nginx
+kubectl get svc my-nginx
+kubectl get ep my-nginx
+
+
+$ kubectl delete deployments,svc my-nginx; kubectl create -f deployment/run-my-nginx.yaml
+
+
+Deplyment => creates pod(s) on all matching nodes
+ In theory, you could talk to these pods directly, but what happens when a node dies? The pods die with it, and the Deployment will create new ones, with different IPs. This is the problem a Service solves.
+
+A Kubernetes Service is an abstraction which defines a logical set of Pods running somewhere in your cluster, that all provide the same functionality. When created, each Service is assigned a unique IP address (also called clusterIP). This address is tied to the lifespan of the Service, and will not change while the Service is alive. Pods can be configured to talk to the Service, and know that communication to the Service will be automatically load-balanced out to some pod that is a member of the Service.
+
+ a Service is backed by a group of pods. These pods are exposed through endpoints
+
+
+For some parts of your applications you may want to expose a Service onto an external IP address. Kubernetes supports two ways of doing this: NodePorts and LoadBalancers.
+
+
+
+kubectl get svc my-nginx -o yaml | grep nodePort -C 5
+
+kubectl get nodes -o yaml | grep ExternalIP -C 1
+
+curl https://<EXTERNAL-IP>:<NODE-PORT> -k
+
+
+
+
+minikube dashboard
+
+
+# Wtih minikube need to proxy into env to access ports.
+kubectl proxy
+http://localhost:8001/api/v1/proxy/namespaces/default/services/frontend
+
+# Opens a browser window with service.
+minikube service my-nginx
+minikube service my-nginx --url
+
+
+<minikube ip>:<nodePort>
+http://192.168.99.100:32149/
+
+
+minikube start/stop
+
+
+
+
+https://blog.risingstack.com/moving-node-js-from-paas-to-kubernetes-tutorial/
+https://github.com/RisingStack/example-kubernetes-nodejs
+https://github.com/RisingStack/example-kubernetes-nodejs/blob/master/k8s/deployment-gateway.yaml
+
+
+checkout yo kubegen
+
+
+
+# One Docker Image per App (git repo)
+We create one Docker image for every application (Git repository). If the repository contains multiple processes like: server, worker and clock we choose between them with an environment variable. Maybe you find it strange, but we don't want to build and push multiple Docker images from the very same source code, it would slow down our CI.
+
+
+
+
+pod: your running containerized application with environment variables, disk, etc. together, pods born and die quickly, like at deploys,
+deployment: configuration of your application that describes what state do you need (CPU, memory, env. vars, docker image version, disks, number of running instances, deploy strategy, etc.):
+service: exposes your running pods by label(s) to other apps or to the outside world on the desired IP and port
+secret: you can separate your credentials from environment variables,
+
+
+
+
+
+https://trace.risingstack.com/
+- has cirlce and traffic graph to analyze internal and external traffic size and routes
+
+
+
+# Nginx in front or Nodejs only
+Good reasons to run a webserver in front of app server.
+- static perfomance
+- if app node crashes, then nginx can serve an error page while service recvers.  Otherwise users will just timeout.
+- mitigate security flaws and attacks
+- load balance?
+Use nuxt SSR not prerender.  Use Nginx cache list + SSR to mimic prerender.
+Ie on first visit to a page, nuxt will SSR it, then nginx will cache it.
+
+Actually this guy shows perf is better without nginx:
+http://centminmod.com/siegebenchmarks/2013/020313/index.html
+
+- express.static serves static files fine and fast
+- Node is pretty secure nowadays.
+- load balancing will be done by kube + cloud providers
+- much greater variety of plugins and easier to interlink when everyone is in node.js
+- just write a cacher in front of the SSR.
+- 
+
+express.static will handle ETags and cache-control headers just fine. – robertklep May 27 '13 at 10:13
+
+
+
+app owners can choose reliable nodes they want to run on.
+would be many times better if we could guarentee that the results of an operation is what was expected.
+or that in general we can say the program executor did not tamper with the code and fully executed it
+
+to execute your 5bit code block, you either must
+- executre 7.5bit total from others
+  - useful for wallet gen where user shouldnt have to 'pay' to get one.
+  - useful for ppl who have the infrastructure to run their app, but want it to run decentralized,
+    and are willing to run other peoples code to fund their own.  
+- pay 5bit (in main coin) to execute it
+
+
+to decouple coin price from execution cost we set an exchange rate
+- bit to coin
+- or really this is set by program executors, creating a market place.
+  - depending on things like device and location and reliability they can charge differently.
+
+ it is in every executors best interest to accurately execute transactions.  bc otherwise code owners will elave.
+ but we must prevent bad executors from simply creating a new 'account'
+ => so some form of POS to be an executor.
+=> a code owner can 'challenge' a result.  this triggers other nodes to run same code and check that it matches result from original executor.  if the executor was wrong then they lose their stake.
+!! in this way i dont think we need to have verifiable executions
+however for dynamic result code this wont work.
+what about if we tree it out.  static parts that always return same result are checked.
+then for dynamic we ignore.
+idk this pos model and checking creates many problems.  easier if user decides if exuctor is being bad. honestly this seems aok.  
+
+
