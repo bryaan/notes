@@ -168,7 +168,6 @@ http://centminmod.com/siegebenchmarks/2013/020313/index.html
 - load balancing will be done by kube + cloud providers
 - much greater variety of plugins and easier to interlink when everyone is in node.js
 - just write a cacher in front of the SSR.
-- 
 
 express.static will handle ETags and cache-control headers just fine. – robertklep May 27 '13 at 10:13
 
@@ -182,7 +181,7 @@ to execute your 5bit code block, you either must
 - executre 7.5bit total from others
   - useful for wallet gen where user shouldnt have to 'pay' to get one.
   - useful for ppl who have the infrastructure to run their app, but want it to run decentralized,
-    and are willing to run other peoples code to fund their own.  
+    and are willing to run other peoples code to fund their own.
 - pay 5bit (in main coin) to execute it
 
 
@@ -199,6 +198,6 @@ to decouple coin price from execution cost we set an exchange rate
 however for dynamic result code this wont work.
 what about if we tree it out.  static parts that always return same result are checked.
 then for dynamic we ignore.
-idk this pos model and checking creates many problems.  easier if user decides if exuctor is being bad. honestly this seems aok.  
+idk this pos model and checking creates many problems.  easier if user decides if exuctor is being bad. honestly this seems aok.
 
 

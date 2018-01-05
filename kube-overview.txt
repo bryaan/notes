@@ -1,0 +1,124 @@
+
+Create Cluster
+https://kubernetes.io/docs/getting-started-guides/scratch/
+
+https://coreos.com/kubernetes/docs/latest/index.html
+- At bottom is "Manual install" follow that procedure.
+
+I think the baseimage for kubnetes is best to be coreos, or a specialized variant thereof with kube instaleed.
+https://kubernetes.io/docs/getting-started-guides/scratch/#software-binaries
+- Software we must have isntalled on OS is here.
+- baseimage -> s
+
+https://coreos.com/kubernetes/docs/latest/deploy-master.html
+
+
+
+Config + Isntall CoreOS
+https://coreos.com/os/docs/latest/
+https://coreos.com/os/docs/latest/clc-examples.html
+
+
+Master (on DO)
+https://coreos.com/os/docs/latest/booting-on-digitalocean.html
+Config Doc/Examples: https://coreos.com/os/docs/latest/clc-examples.html
+Really do the spinup + Ignition config insertion using terraform.
+
+
+coreos has their own opinonated way of setting up kube using Tectonic, without kubeadm, and with alot of the extra coreos crap. Also docs arent as great.
+Instead, just install coreos, setup required services like etcd (but only for master), and setup alowed ssh keys, then use kubeadm to setup kubernetes.
+https://kubernetes.io/docs/setup/independent/create-cluster-kubeadm/
+https://kubernetes.io/docs/getting-started-guides/scratch/#software-binaries
+
+If special hardware like GPUs are required, then the worker should have RHEL/Centos installed.
+
+
+Stepbystep - shows what each kube config file is doing.  but only use this as ref.
+https://github.com/coreos/coreos-kubernetes/blob/master/Documentation/kubernetes-on-baremetal.md
+
+
+
+Kube Dashboard
+https://github.com/kubernetes/dashboard#kubernetes-dashboard
+
+
+
+
+Kube Addons
+https://kubernetes.io/docs/concepts/cluster-administration/addons/
+- Actually there are kubernetes plugins, to handle coreos's flannel if we wish. looks like a cloud-config/yml file, so pretty much same approach as coreos docs. 
+
+
+Core DNS Addon
+- Can do god level dns with https://coredns.io/2017/07/24/quick-start/
+but not sure if this would make it a nameserver that can also be used publicly instead of just internal, and in that case isnt it better to run a docker container with some dns service, and pull configs from etcd?
+
+
+
+Kube Cluster Backup
+The cluster created here has a single master, with a single etcd database running on it. This means that if the master fails, your cluster may lose data and may need to be recreated from scratch. Adding HA support (multiple etcd servers, multiple API servers, etc) to kubeadm is still a work-in-progress.
+regularly back up etcd. The etcd data directory configured by kubeadm is at /var/lib/etcd on the master.
+
+https://coreos.com/etcd/docs/latest/v2/admin_guide.html
+https://kubernetes.io/docs/setup/independent/create-cluster-kubeadm/
+
+ETCd Multithread
+https://coreos.com/etcd/docs/latest/v2/admin_guide.html
+When using etcd in heavy-load scenarios on machines with multiple cores it will usually be desirable to increase the number of threads that etcd can utilize. 
+To do this, simply set the environment variable GOMAXPROCS to the desired number when starting etcd
+
+
+https://kubernetes.io/docs/tutorials/stateless-application/hello-minikube/
+
+
+
+
+
+
+
+Mesos/Kubernetes
+- Higher in the software application stack.  Their abstraction is containers on nodes, to do compute just run an image on a cluster, optionally select a set of nodes, and set correct scale param.
+Storage: run a docker image that is a storage server SAMBA? or SMBv2?  And set it to run on a particular node.
+    - Can also manage storage in some respect from the mesos gui.
+
+OpenStack
+- Good for Data Center Orchestration.  Not good at app/container maganagement.
+
+
+Can put both together and is recommended by one as technical nirvana.  But they arent nexxessary to use together, and im thinking mesos/kubernetes will be plenty.  
+!!! I dont need to orchestrate and provision hardware, I need to run applications on particular nodes! => use Mesos/Kubernetes only.. for now
+
+
+“The Apple Siri team was running on VMware and ultimately moved to bare metal,” explains Hindman. “When Apple moved to bare metal with Mesos, one of the big reasons why they did it was, first, they did not need the virtual machines and, second, they got a big performance improvement. The virtualization tax that we often talk about is very real and for Apple it was on the order of 30 percent. Removing it meant Apple could run Siri jobs 30 percent faster, which is a really big deal.”
+
+
+
+Assign/Attract pod(s) to node(s):
+https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
+https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
+
+
+Partition the Kubernetes cluster into two namespaces: development and production.:
+https://kubernetes.io/docs/tasks/administer-cluster/namespaces/
+My Namespaces:
+(rule is each production env should get a namespace, and dev should be all encompassing)
+-Krypton, BCloud, Dev
+
+
+Securing A Cluster:
+https://kubernetes.io/docs/tasks/administer-cluster/securing-a-cluster/
+
+
+
+
+
+
+
+For use in a decentralized os model like kubernetes:
+https://github.com/coreos/dex/blob/master/Documentation/using-dex.md
+https://github.com/ory/hydra
+
+
+https://www.andyibanez.com/making-linux-file-server-interacts-os-x-mavericks/
+
+
