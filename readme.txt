@@ -482,3 +482,303 @@ https://medium.com/@tbeach/resize-an-encrypted-partition-without-breaking-your-l
 
 Bare metal clouds, essentially just buying a dedicated server. So there isnt the overhead of the cloud provider's  multi-tenant virtualization system.  DO uses KVM/QEMU, this adds overhead, but allows us to spin droplets up and down quickly.  Baremetal makes sense in some production.  But idk, more resources, lower price, mght be perfect?
 
+
+
+Once you do nixos collect-garbage -d, you know that your system is only left with what it needs. Nothing more, nothing less.
+
+
+Hydra is a Nix-based continuous build system, rel
+https://nixos.org/hydra/manual/
+
+
+flow
+use nixpkgs as a base, lock versions down for each 'project'.
+
+
+
+OMG NIX AS AN OSX PACKAGE MAN - UTOPIA REACHED
+https://ariya.io/2016/05/nix-as-os-x-package-manager
+
+nix-darwin
+
+
+
+We use NixOS in production in our product, for our cloud services, and for some development environments.
+
+We build everything with nix from sbt projects, go projects, haskell projects, purescript projects, docker images, and npm projects.
+
+It's an incredible tool.
+
+
+Q: What a script for a local dev npm porject would look like
+
+
+https://zef.me/deploying-a-simple-node-js-application-with-nixops-c290270612bf
+
+Pretty much use the first part.  The networking and supervision is to be done by nomad + consul.
+
+
+The first part isntalls required node versions, and will run required scripts
+`npm i, npm publish`.
+- should be able to do both production and dev builds in the same file, probably using different nix-envs to namespace.
+
+Then it should be easy to 'compile' or 'run' this file using a one-liner:
+TODO: <one liner here>
+
+
+So what we do with nomad
+- We now create a nomad job spec, prob a isolated fork/exec that calls the one-liner above.
+- In the same file we configure consul networking.
+
+
+
+The way nix versioning works, for pacakges like node, we would pull say node_8,
+what happens is that we always get the latest node_8, however with semantic versioning we should be ok from breaking changes, and gain security and bug patch benefits.
+
+
+
+The fact the nix-pkg works with mac is game changer, we may now be able to use the same pretty much everything udring dev as prod.
+
+
+
+http://lethalman.blogspot.com/2015/02/nixos-consul-nginx-and-containers.html
+https://zef.me/deploying-a-simple-node-js-application-with-nixops-c290270612bf
+
+
+
+
+
+mwpmaybe 319 days ago [-]
+
+My personal rules of thumb for Linux systems. YMMV.
+* If you need a low-latency server or workstation and all of your processes are killable (i.e. they can be easily/automatically restarted without data loss): disable swap.
+* If you need a low-latency server or workstation and some of your processes are not killable (e.g. databases): enable swap and set vm.swappiness to 0.
+* SSD-backed desktops and other servers and workstations: enable swap and set vm.swappiness to 1 (for NAND flash longevity).
+* Disk-backed desktops and other servers and workstations: accept the system/distro defaults, typically swap enabled with vm.swappiness set to 60. You can and likely should lower vm.swappiness to 10 or so if you have a ton of RAM relative to your workload.
+* If your server or workstation has a mix of killable and non-killable processes, use oom_score_adj to protect the non-killable processes.
+* Monitor systems for swap (page-out) activity.
+
+* vm.swappiness = 0	The kernel will swap only to avoid an out of memory condition, when free memory will be below vm.min_free_kbytes limit.
+* vm.swappiness = 1	Minimum amount of swapping without disabling it entirely.
+* vm.swappiness = 60	The default value.
+* vm.swappiness = 100	The kernel will swap aggressively.
+
+
+
+
+############################################################
+# NixOS
+############################################################
+
+
+## TODO Local Binary Caches
+
+[Binary Cache - Sharing]https://nixos.org/nix/manual/#sec-sharing-packages
+
+https://github.com/nh2/nix-binary-cache-proxy
+There is also this but doesnt seem like it would work for local packages,
+without additional logic in the package.
+
+You can install nix-serve on any machine to share its binary cache (including patched applications). Then add all of the enabled machines to every machine's nix.binaryCaches in order of preference. If they don't have what you need, it will fall back to the upstream server. You'll want to make sure they are upgraded in an appropriate order to minimize the need to leave your network for updates. It's true this isn't well documented, but I figured it out in about a day and was surprised at how simple it turned out to be.
+
+You can even go further and set up your own build server to service all the architectures you need to support.
+
+
+[Copying Closures Via SSH](https://nixos.org/nix/manual/#ssec-copy-closure)
+[Copying Closures Via SSH 2](https://blog.joel.mx/posts/how-to-use-nix-copy-closure-step-by-step)
+
+
+
+[Serving a Nix store via SSH](https://nixos.org/nix/manual/#ssec-ssh-substituter)
+
+
+TODO Fix for ssh connect is to use local agent, since nixos is using local pub keys in auth_keys
+
+https://www.packer.io/docs/templates/communicator.html#ssh_agent_auth
+
+ssh_agent_auth=true
+ssh_pty=true
+
+
+packer build -debug
+PACKER_LOG=1 packer build -debug
+PACKER_LOG_PATH
+
+
+
+
+Here's another example that is simple, but one I still appreciate: I wanted a slightly newer kernel. How do I get it, and ensure all the "downstream" dependencies are rebuilt (e.g. kernel modules)?[1]
+
+I write this into my configuration.nix:
+
+    boot.kernelPackages = pkgs.linuxPackages_latest;
+I run `nixos-rebuild switch && reboot` and I'm done. I can switch back to the last one if I wanted, but this new one takes place immediately. I just did this on a server 20 minutes ago.
+There are other small things I can do with this. What if I didn't want to boot this kernel to boot, just test it?
+
+    $ nixos-rebuild build-vm
+    $ ./result/bin/run-*-vm
+This will instantly drop you into a QEMU-KVM instance that is using NixOS with your `configuration.nix`, but if you rebooted nothing would change. (You can also specify a different configuration.nix to test other machines![2]) Or I could boot it, but just once and switch back pretty easily if something was wrong.
+
+
+
+nix-shell to create a namespced env for dev of a project.
+can use nix-shell to make the toolchain and dependencies temporarily available to a self-contained shell.
+https://github.com/knedlsepp/nix-cheatsheet/tree/master/examples/nix-shell
+
+
+
+############################################################
+# Fish
+############################################################
+
+omf install bobthefish
+#> Install Nerd Fonts
+
+
+
+shellder
+slavic-cat
+sushi
+
+https://github.com/ryanoasis/nerd-fonts/releases/tag/v1.2.0
+https://github.com/ryanoasis/nerd-fonts/releases/download/v1.2.0/Hack.zip
+
+
+On MAc:
+brew tap caskroom/fonts
+brew cask install font-hack-nerd-font
+
+
+# Only want when SSHing. Cando?
+set -g theme_display_user yes
+
+
+# TODO Add $OMF_CONFIG to vcs
+
+In $OMF_CONFIG create
+
+init.fish - Custom script sourced after shell start
+before.init.fish - Custom script sourced before shell start
+key_bindings.fish - Custom key bindings where you can use the bind command freely
+
+
+
+Must be able to use transformer to make use of vast lib of linux device drivers.  Something like a reverse engineer into new microkern.
+
+One of these approaches directly attacks the core of
+the problem: having the entire operating system run as
+a single gigantic binary program in kernel mode. Instead,
+only a tiny microkernel runs in kernel mode with the
+rest of the operating system running as a collection of
+fully isolated user-mode server and driver processes.
+
+http://www.minix3.org/docs/jorrit-herder/computer-may06.pdf
+
+Prob ok but what if it was more elegantly solved?
+The drivers run in user mode and cannot execute
+privileged instructions or read or write the computer’s
+I/O ports; they must make kernel calls to obtain these
+services. While introducing a small amount of overhead,
+this design also enhances reliability
+- what if since system is immutable (expect for files, and memory),
+  the need for a priveldged proxy like the microkernel is largely reduced,
+  and now the driver can make 'priviledged' (but not acrually dangerous) calls.
+  ?
+
+
+Minix 3 performs
+IPC by passing fixed-length messages using the rendezvous
+principle: When both the sender and the
+receiver are ready, the system copies the message directly
+from the sender to the receiver.
+- very cool means erlang's use is finally being replaced, meaning better perf.
+- what other strats could be impld? Most efficient?
+- How about if the kernel used the fastest non-locking non-blocking datastructure around? the RB?
+- One big system req: If I wanted to change the message passing architecture, I should be able to do it without requiring anyother programs to change.  This can be loosely fullfilled at beggining, bc more abstrcation thought will prob be neccessary.
+- Actually scheduling is another concept.  This is just IPC.
+The scheduler would schedule threads to run, who would write to this lockfree RB concurrently.  I think the beauty here could be that a thread could be made to exclusively execute a specific company app, and never exec any other code needed by kernel or otherwise.  I guess same thing could be done on linux with pinning, but i bet it just isnt the same. especially perf wise.
+
+Minix 3 elegantly integrates interrupts with the message
+passing system. Interrupt handlers use the notifi-
+cation mechanism to signal I/O completion. This
+mechanism allows a handler to set a bit in the driver’s
+‘‘pending interrupts’’ bitmap and then continue without
+blocking. When the driver is ready to receive the interrupt,
+the kernel turns it into a normal message.
+
+
+Minix 3’s IPC design does not require message queuing
+or buffering, which eliminates the need for buffer
+management in the kernel. Furthermore,
+since IPC is a powerful construct,
+the IPC capabilities of each
+server and driver are tightly con-
+fined. For each process, the available
+IPC primitives, allowed destinations,
+and user event notifications are
+restricted. User processes, for example,
+can use only the rendezvous
+principle and can send to only the
+Posix servers.
+
+In addition, all kernel data structures are static. All of
+these features greatly simplify the code and eliminate
+kernel bugs associated with buffer overruns, memory
+leaks, untimely interrupts, untrusted kernel code, and
+more. Of course, moving most of the operating system
+to user mode does not eliminate the inevitable bugs in
+drivers and servers, but it renders them far less powerful.
+A kernel bug can trash critical data structures, write
+garbage to the disk, and so on; a bug in most drivers and
+servers cannot do as much damage since these processes
+are strongly compartmentalized
+
+
+Another reliability feature is the use of separate
+instruction and data spaces. Should a bug or virus manage
+to overrun a driver or server buffer and place foreign
+code in data space, the injected code cannot be executed
+by jumping to it or having a procedure return to it, since
+the kernel will not run code unless it is in the process’s
+(read-only) instruction space.
+Among the other specific features aimed at improving
+reliability, the most crucial is the self-healing property.
+If a driver does a store through an invalid pointer, gets
+into an infinite loop, or otherwise misbehaves, the reincarnation
+server will automatically replace it, often without
+affecting running processes.
+
+
+what if the dev parasignm chagned from writing monolithic apps to tight small functions that are tightly integrated with the OS.
+
+So like a REST route handler for /about could be written in say go or rust or c, then instead of needing all the other stuff, it would be put in a file, and given to the system to serve via its default http server.
+- Maybe kinda like googles and amzns SaaS
+
+GO OTHER WAY WITH IT
+
+Want lang to replace OS.  Why use an OS at all, when we have a lang where we tend to place every last possible config.  And really its our domain-specific program that determines the requirements of its OS (where perf is important vs security).  Makes lots of sense so far...
+
+MSFT creates SING# Sigularity
+
+It seems even Rust cant do away with unsafe code? (maybe changes given other reqs) so chaces are we still need pointers and stuff, just that 1. it would be nice if the OS could prevent overflows (even if perf hit requiring a specified flag). 2. I a program does overflow it will be restarted gracefully.  Arg is still there its better to write bug free code.
+
+
+HOW TO AVOID THE CONTEXT SWITHC.
+Key for solution.
+
+
+
+Because language safety tightly constrains
+the system and user processes, all processes can
+run together in a single virtual address space. This design
+leads to both safety—because the compiler will not
+allow a process to touch another process’s data—and
+efficiency—because it eliminates kernel traps and context
+switches. 
+Singularity design is flexible because
+each process is a closed entity and thus can have its own
+code, data structures, memory layout,
+runtime system, libraries, and
+garbage collector. 
+
+- The language (compiler) handles pointer overflows by preventing them from being generated in first place.  code wont compile.
