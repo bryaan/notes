@@ -1,0 +1,6 @@
+
+Language is wrong way to go because:
+- Everything must be rewritten in that language.
+Would be ok if this language integrated with other langs like C/Rust.
+
+imagine ticking off requirements in a gui, in order to build individual microkern modules, with particular config settings, right down to different impl of list or array depending on use case. What if even the kmodules were automatically made by specification of the application?  Sure, app would say what modules it needs by importing packages, then the implementaion would determine with what settings to build those kmodules.

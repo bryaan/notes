@@ -1,0 +1,253 @@
+
+Nomad Pros vs Kube
+- Bare metal performance possible. No containerization overhead required.
+- Uses chroot and cgroup to securely isolate applications.
+- Built to allow global datacenter clusters.
+- Very simple programs, easy to learn and use, low attack surface.
+
+Nomad only aims to provide cluster management and scheduling
+
+Nomad supports virtualized, containerized and standalone applications, including Docker.
+
+
+
+Consul is a service discovery application which can make each individual service in the cluster visible to each other.
+
+Consul Features
+- service discovery (DNS)
+- health checking
+
+ping elasticsearch.service.consul
+
+
+Primary Read First
+https://www.nomadproject.io/docs/drivers/exec.html
+https://www.nomadproject.io/guides/cluster/requirements.html
+
+
+Secondary
+https://github.com/hashicorp/consul-template
+
+
+Resources
+https://medium.com/@copyconstruct/schedulers-kubernetes-and-nomad-b0f2e14a896
+
+
+
+This is perfect for both IoT and Mining.
+- Nomad Clients can run on rasberry pi's.
+- Since there is no is no heavy weight virtualization, simply chroot and cgroup,
+running nvidia and amd drivers should be just like without using nomad at all.
+
+
+Provisioning Base Image
+- Keep it to the nomad agent only, if possible.
+- Everything else is done with services and their configs. (consul, logging infrastructure, monitoring agents, dnsmasq etc.)
+
+
+
+https://github.com/hashicorp/consul-template
+
+we use HAProxy, whose config gets redrawn by Consul-Template. Zero downtime HAProxy reloads are slightly more complicated than described above
+
+
+
+Terraform
+- File copying.
+- Hardware provisioning.
+- Can add kvs to consul, so apps can pull their config dynamically now.
+  (Or just specify env vars in the apps' nomad job file)
+
+Use in layers
+1. setup the physical infrastructure running the nomad schedulers
+2. provisioning onto the scheduled grid
+
+
+
+Storage
+Simply run a file-server docker image job on nomad, which is assigned to a
+particular physical node.  This resource can then be published to consul so it can be accessed on the network.
+
+VPN
+Same as above.
+
+
+
+
+https://www.digitalocean.com/community/tutorials/how-to-configure-consul-in-a-production-environment-on-ubuntu-14-04
+
+Reasons for Nomad:
+Krypton Office Backups
+Kryton Website
+Tibra Website
+
+Classified:
+Mining
+Jupyter
+
+
+
+
+
+https://github.com/pete0emerson/hashipoc
+- in vagrantfile calls bunch of shell scripts, that install libs,
+install nomad and freinds, install app.
+
+
+
+
+
+Terraform
+- Only required in production and QA/staging.
+    - For dev we dont need to setup infrastructure, its simply vagrant up, so there is no need for Terraform.
+
+Nomad can always be run in dev mode, which means client and server are on same machine.
+
+Local development with nomad is also much simpler
+consul agent -dev
+sudo nomad agent -dev
+nomad run job.nomad
+
+
+
+
+
+Rkt and LXC can run Docekr stuff. I think rkt provides the best security + perf.  figure out best to go with, when we do want conatiners.
+
+What the containerization stuff provides over chroot+cgroup is isolation of the network layer and more.
+- But that network isolation is really unneccessary when viewed in silo.
+
+For things that require a lot of setup, or that we simply dont require 100% perf out of, we can do as docker containers.
+But that should be very few.
+
+
+# Upgrading Servers:
+
+tldr: terraform for intial setup of machine.  salt for updates and stuff?
+
+Would write a bash script that does graceful shutdown of jobs on node, and updates os.
+This would exec as a nomad job, tied to specific server.  Use consul kv store to limit # machines upgrading, and to track status.
+Or can get ip of each node from consul, ssh in to each, running bash script.
+And this could be made into a job to run on cluster.
+  - But to do that we must write logic so that when executing node gets upgraded the script will gracefully restart on another node, ideally an upgraded one.
+
+Prob best to write as a terraform script and just make sure the host laptop running it doesnt go down, and that everything can resume normally if it does disconnect.
+
+Or maybe this is where puppet (or salt) comes in?
+- terraform can be used with puppet or salt https://www.terraform.io/docs/provisioners/salt-masterless.html
+
+Terraform vs. Chef, Puppet, etc.
+Configuration management tools install and manage software on a machine that already exists. Terraform is not a configuration management tool, and it allows existing tooling to focus on their strengths: bootstrapping and initializing resources.
+
+
+# lkt
+lkt builds up from scratch to the bare minimum you need; Packet builds from an existing OS base.
+lkt's security surface of attack will be smaller, because it starts not with an existing OS, but with, well, nothing.
+lkt images can be significantly smaller, because you add in only precisely what you need.
+lkt builds run locally. Packer essentially spins up a VM (vbox, EC2, whatever), runs some base image, modifies it per your instructions, and then saves it as a new image. lkt just manipulates OCI images by downloading and copying files to create a new image.
+
+LinuxKit competes with packer, it seems to have more features.
+- Big plus: Can build images that run on Mac's xhyve (HyperKit).  So it is just as fast as docker in dev!
+- BigPlus: Literally only run the services neccessary.  => Truly minimal and lean VMs.
+- beleive it is using runc + containerd instead of something like DockerEngine.  Seems to have Qemu as well.
+  - Note this is for containers running inside the VM.  Not the VM itself.
+
+  We can install any container runtime we would like.  What we need to do is simply isntall nomad, and run shell scripts.
+  No need for linuxkit to handle containers for us.
+
+linuxkit.yml Examples:
+https://github.com/linuxkit/linuxkit/tree/master/examples
+
+Packages:
+https://github.com/linuxkit/linuxkit/blob/master/docs/packages.md
+https://github.com/linuxkit/linuxkit/tree/master/pkg
+
+
+Netflix has a chaos monkey that randomly burns down servers in order to test that their system is resilient.
+https://medium.com/netflix-techblog/the-netflix-simian-army-16e57fbab116
+
+
+
+
+Image Builder: umoci
+
+!!! I beleive both linuxkit and buildah 
+
+Thing with linuxkit is doesnt build the whole OS.  So we can use say the centos kernel, but no guarentee
+nvidia drivers will run without userspace setup.  Also lkt really bothers me in the runtime services,
+for development this could be a royal pain to figure out these deps.
+But look, the clear advantage here is a resultant barebones os.
+Possible to use lkt to build only some images.
+
+
+
+
+
+lkvm or qemu-kvm
+- Considered safe to run untrusted programs in.
+
+rkt
+- uses runc which is contolled by containerd.
+
+docker
+- uses runc and containerd, but rkt has advantages in priviledge (security), philosophy (unix), 
+
+
+Skopeo
+In order to get an OCI image, you need to convert it from another container image format. Luckily, as the OCI spec was based on the Docker image format, there is no loss of information when converting between the two formats. skopeo is an incredibly useful tool that allows you to fetch and convert a Docker image (from a registry, local daemon or even from a file saved with docker save) to an OCI image (and vice-versa)
+
+
+
+
+
+Load Balancing
+- consul-haproxy
+https://www.hashicorp.com/blog/haproxy-with-consul
+https://www.hashicorp.com/blog/load-balancing-strategies-for-consul
+- These are other strats.  But consul-haproxy seems to be best approach, also newer than whats here.
+
+
+
+
+Server OS
+- Debian, Ubuntu, CentOS
+Hashicorp by default uses ubuntu for their nomad consul demos.
+
+server choice prob doesnt matter so much.
+prob dont want rolling updates as its bound to eventually break?
+- yes, however with nixos rollback is very easy, and builds should be reliable.
+
+want to use nomad in dev bc that is how we specify the jobs exec rkt containers
+Why not use it:
+- Bc it complicates dev.
+- Bc jobs are easy to write and simple.
+- Bc nixos config files make setting up a dev env cake.
+
+
+CoreOS
+- Problem is we would have to run nomad in an rkt container.
+And somehow setup so that nomad starts procs in host and not in container.
+- Also rolling updates. But id say this is the one release where this is ok.
+
+Ubuntu
+- apt goes a long way to making things 'just work'
+
+Debian
+- apt goes a long way to making things 'just work'
+- extra security & stability over ubuntu. ..?
+
+CentOS
+- Easy to install amd+nvidia drivers, so if its not easy on ubuntu or debian, we should stick with it.  Also wasnt it centos that was the only one able to queitly run the gpu fans?
+
+
+
+# Storage
+
+## GlusterFs
+https://github.com/gluster/gluster-containers
+
+
+Might be possible to use Vault's Filesystem storage mechanism, to store program data.  (Or any of its other backends)
+
+Otherwise, we can run samba containers bound to physical machines by label.
+

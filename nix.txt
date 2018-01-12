@@ -1,0 +1,81 @@
+
+############################################################
+# NixOS
+############################################################
+
+
+
+
+Once you do nixos collect-garbage -d, you know that your system is only left with what it needs. Nothing more, nothing less.
+
+
+Hydra is a Nix-based continuous build system, rel
+https://nixos.org/hydra/manual/
+
+
+flow
+use nixpkgs as a base, lock versions down for each 'project'.
+
+
+
+OMG NIX AS AN OSX PACKAGE MAN - UTOPIA REACHED
+https://ariya.io/2016/05/nix-as-os-x-package-manager
+
+
+
+
+## TODO Local Binary Caches
+
+[Binary Cache - Sharing]https://nixos.org/nix/manual/#sec-sharing-packages
+
+https://github.com/nh2/nix-binary-cache-proxy
+There is also this but doesnt seem like it would work for local packages,
+without additional logic in the package.
+
+You can install nix-serve on any machine to share its binary cache (including patched applications). Then add all of the enabled machines to every machine's nix.binaryCaches in order of preference. If they don't have what you need, it will fall back to the upstream server. You'll want to make sure they are upgraded in an appropriate order to minimize the need to leave your network for updates. It's true this isn't well documented, but I figured it out in about a day and was surprised at how simple it turned out to be.
+
+You can even go further and set up your own build server to service all the architectures you need to support.
+
+
+[Copying Closures Via SSH](https://nixos.org/nix/manual/#ssec-copy-closure)
+[Copying Closures Via SSH 2](https://blog.joel.mx/posts/how-to-use-nix-copy-closure-step-by-step)
+
+
+
+[Serving a Nix store via SSH](https://nixos.org/nix/manual/#ssec-ssh-substituter)
+
+
+TODO Fix for ssh connect is to use local agent, since nixos is using local pub keys in auth_keys
+
+https://www.packer.io/docs/templates/communicator.html#ssh_agent_auth
+
+ssh_agent_auth=true
+ssh_pty=true
+
+
+packer build -debug
+PACKER_LOG=1 packer build -debug
+PACKER_LOG_PATH
+
+
+
+
+Here's another example that is simple, but one I still appreciate: I wanted a slightly newer kernel. How do I get it, and ensure all the "downstream" dependencies are rebuilt (e.g. kernel modules)?[1]
+
+I write this into my configuration.nix:
+
+    boot.kernelPackages = pkgs.linuxPackages_latest;
+I run `nixos-rebuild switch && reboot` and I'm done. I can switch back to the last one if I wanted, but this new one takes place immediately. I just did this on a server 20 minutes ago.
+There are other small things I can do with this. What if I didn't want to boot this kernel to boot, just test it?
+
+    $ nixos-rebuild build-vm
+    $ ./result/bin/run-*-vm
+This will instantly drop you into a QEMU-KVM instance that is using NixOS with your `configuration.nix`, but if you rebooted nothing would change. (You can also specify a different configuration.nix to test other machines![2]) Or I could boot it, but just once and switch back pretty easily if something was wrong.
+
+
+
+nix-shell to create a namespced env for dev of a project.
+can use nix-shell to make the toolchain and dependencies temporarily available to a self-contained shell.
+https://github.com/knedlsepp/nix-cheatsheet/tree/master/examples/nix-shell
+
+

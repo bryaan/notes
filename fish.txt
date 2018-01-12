@@ -1,0 +1,53 @@
+############################################################
+# Fish
+############################################################
+
+omf install bobthefish
+#> Install Nerd Fonts
+
+http://blog.z3bra.org/2014/04/meeting-at-the-bar.html
+
+
+On MAc:
+brew tap caskroom/fonts
+brew cask install font-hack-nerd-font
+
+
+# Only want when SSHing. Cando?
+set -g theme_display_user yes
+
+
+# TODO Add $OMF_CONFIG to vcs?
+
+In $OMF_CONFIG create
+
+init.fish - Custom script sourced after shell start
+before.init.fish - Custom script sourced before shell start
+key_bindings.fish - Custom key bindings where you can use the bind command freely
+
+
+
+Add path temporarily:
+
+$ set -gx PATH $PATH <path>
+
+
+Useful tip:
+After aliasing say cat to ccat, you can use original cat by `\cat`
+
+
+shellder
+slavic-cat
+sushi
+
+https://github.com/ryanoasis/nerd-fonts/releases/tag/v1.2.0
+https://github.com/ryanoasis/nerd-fonts/releases/download/v1.2.0/Hack.zip
+
+
+
+
+# Reload Fish Config
+
+$ source ~/.config/omf/init.fish
+
+

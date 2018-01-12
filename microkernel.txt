@@ -1,0 +1,133 @@
+
+
+
+
+############################################################
+# Microkernels
+############################################################
+
+
+
+Must be able to use transformer to make use of vast lib of linux device drivers.  Something like a reverse engineer into new microkern.
+
+One of these approaches directly attacks the core of
+the problem: having the entire operating system run as
+a single gigantic binary program in kernel mode. Instead,
+only a tiny microkernel runs in kernel mode with the
+rest of the operating system running as a collection of
+fully isolated user-mode server and driver processes.
+
+http://www.minix3.org/docs/jorrit-herder/computer-may06.pdf
+
+Prob ok but what if it was more elegantly solved?
+The drivers run in user mode and cannot execute
+privileged instructions or read or write the computer’s
+I/O ports; they must make kernel calls to obtain these
+services. While introducing a small amount of overhead,
+this design also enhances reliability
+- what if since system is immutable (expect for files, and memory),
+  the need for a priveldged proxy like the microkernel is largely reduced,
+  and now the driver can make 'priviledged' (but not acrually dangerous) calls.
+  ?
+
+
+Minix 3 performs
+IPC by passing fixed-length messages using the rendezvous
+principle: When both the sender and the
+receiver are ready, the system copies the message directly
+from the sender to the receiver.
+- very cool means erlang's use is finally being replaced, meaning better perf.
+- what other strats could be impld? Most efficient?
+- How about if the kernel used the fastest non-locking non-blocking datastructure around? the RB?
+- One big system req: If I wanted to change the message passing architecture, I should be able to do it without requiring anyother programs to change.  This can be loosely fullfilled at beggining, bc more abstrcation thought will prob be neccessary.
+- Actually scheduling is another concept.  This is just IPC.
+The scheduler would schedule threads to run, who would write to this lockfree RB concurrently.  I think the beauty here could be that a thread could be made to exclusively execute a specific company app, and never exec any other code needed by kernel or otherwise.  I guess same thing could be done on linux with pinning, but i bet it just isnt the same. especially perf wise.
+
+Minix 3 elegantly integrates interrupts with the message
+passing system. Interrupt handlers use the notifi-
+cation mechanism to signal I/O completion. This
+mechanism allows a handler to set a bit in the driver’s
+‘‘pending interrupts’’ bitmap and then continue without
+blocking. When the driver is ready to receive the interrupt,
+the kernel turns it into a normal message.
+
+
+Minix 3’s IPC design does not require message queuing
+or buffering, which eliminates the need for buffer
+management in the kernel. Furthermore,
+since IPC is a powerful construct,
+the IPC capabilities of each
+server and driver are tightly con-
+fined. For each process, the available
+IPC primitives, allowed destinations,
+and user event notifications are
+restricted. User processes, for example,
+can use only the rendezvous
+principle and can send to only the
+Posix servers.
+
+In addition, all kernel data structures are static. All of
+these features greatly simplify the code and eliminate
+kernel bugs associated with buffer overruns, memory
+leaks, untimely interrupts, untrusted kernel code, and
+more. Of course, moving most of the operating system
+to user mode does not eliminate the inevitable bugs in
+drivers and servers, but it renders them far less powerful.
+A kernel bug can trash critical data structures, write
+garbage to the disk, and so on; a bug in most drivers and
+servers cannot do as much damage since these processes
+are strongly compartmentalized
+
+
+Another reliability feature is the use of separate
+instruction and data spaces. Should a bug or virus manage
+to overrun a driver or server buffer and place foreign
+code in data space, the injected code cannot be executed
+by jumping to it or having a procedure return to it, since
+the kernel will not run code unless it is in the process’s
+(read-only) instruction space.
+Among the other specific features aimed at improving
+reliability, the most crucial is the self-healing property.
+If a driver does a store through an invalid pointer, gets
+into an infinite loop, or otherwise misbehaves, the reincarnation
+server will automatically replace it, often without
+affecting running processes.
+
+
+what if the dev parasignm chagned from writing monolithic apps to tight small functions that are tightly integrated with the OS.
+
+So like a REST route handler for /about could be written in say go or rust or c, then instead of needing all the other stuff, it would be put in a file, and given to the system to serve via its default http server.
+- Maybe kinda like googles and amzns SaaS
+
+GO OTHER WAY WITH IT
+
+Want lang to replace OS.  Why use an OS at all, when we have a lang where we tend to place every last possible config.  And really its our domain-specific program that determines the requirements of its OS (where perf is important vs security).  Makes lots of sense so far...
+
+MSFT creates SING# Sigularity
+
+It seems even Rust cant do away with unsafe code? (maybe changes given other reqs) so chaces are we still need pointers and stuff, just that 1. it would be nice if the OS could prevent overflows (even if perf hit requiring a specified flag). 2. I a program does overflow it will be restarted gracefully.  Arg is still there its better to write bug free code.
+
+
+HOW TO AVOID THE CONTEXT SWITHC.
+Key for solution.
+
+
+Because language safety tightly constrains
+the system and user processes, all processes can
+run together in a single virtual address space. This design
+leads to both safety—because the compiler will not
+allow a process to touch another process’s data—and
+efficiency—because it eliminates kernel traps and context
+switches.
+Singularity design is flexible because
+each process is a closed entity and thus can have its own
+code, data structures, memory layout,
+runtime system, libraries, and
+garbage collector.
+
+- The language (compiler) handles pointer overflows by preventing them from being generated in first place.  code wont compile.
+
+
+
+
+
