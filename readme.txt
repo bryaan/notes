@@ -49,6 +49,13 @@ KWorkstations
 
 
 
+
+"have us call you"
+click -> phone entry -> ok button
+gets sent off, now more form fields show.
+can say they can continue later.  Use phone as verification device. to continue on from some point.
+
+
 ==================================================================
 
 
@@ -193,4 +200,5 @@ https://github.com/mwrock/packer-templates
 https://github.com/knedlsepp/nix-cheatsheet/blob/master/examples/nix-env/ad-hoc.md
 https://github.com/knedlsepp/nix-cheatsheet/tree/master/examples/nix-shell
 
-
+Check these to manage dotfiles and NixUp for declartive config.
+https://github.com/knedlsepp/nix-cheatsheet/blob/master/examples/nix-env/declarative-user-environment.md

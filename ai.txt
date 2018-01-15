@@ -4,3 +4,26 @@ Language is wrong way to go because:
 Would be ok if this language integrated with other langs like C/Rust.
 
 imagine ticking off requirements in a gui, in order to build individual microkern modules, with particular config settings, right down to different impl of list or array depending on use case. What if even the kmodules were automatically made by specification of the application?  Sure, app would say what modules it needs by importing packages, then the implementaion would determine with what settings to build those kmodules.
+
+
+
+
+
+
+
+
+
+
+what if public nodes search for DAG patterns in brain?
+should be a way to obfuscate, especially since we can replace all words with hashes
+they dont know the meaning of.  (is there a possibility to setup an obfuscation chain, where one node creates its own hash function pplies then passes result to next node who does same, then it gets untangled on way back.)
+
+
+http://www.cs.ox.ac.uk/jeremy.gibbons/publications/embedding.pdf
+
+
+There are two major degrees of embedding:
+
+Shallow embedding: All Haskell operations immediately translate to the target language. E.g. the Haskell expression a+b is translated to a String like "a + b" containing that target language expression.
+Deep embedding: Haskell operations only build an interim Haskell data structure that reflects the expression tree. E.g. the Haskell expression a+b is translated to the Haskell data structure Add (Var "a") (Var "b"). This structure allows transformations like optimizations before translating to the target language.
+
