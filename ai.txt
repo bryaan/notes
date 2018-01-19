@@ -1,3 +1,13 @@
+https://console.bluemix.net/docs/services/alchemy-language/customizing.html#overview
+
+https://console.bluemix.net/docs/services/alchemy-language/migration.html#index
+
+https://console.bluemix.net/docs/services/alchemy-language/visual-constraints.html#visualConstraints
+
+
+
+
+
 
 Language is wrong way to go because:
 - Everything must be rewritten in that language.

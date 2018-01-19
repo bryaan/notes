@@ -184,7 +184,6 @@ https://zef.me/deploying-a-simple-node-js-application-with-nixops-c290270612bf
 
 
 
-
 ############################################################
 # TODO
 ############################################################
@@ -202,3 +201,87 @@ https://github.com/knedlsepp/nix-cheatsheet/tree/master/examples/nix-shell
 
 Check these to manage dotfiles and NixUp for declartive config.
 https://github.com/knedlsepp/nix-cheatsheet/blob/master/examples/nix-env/declarative-user-environment.md
+
+
+
+# NODEKIT FOR XPLATFORM APPS
+
+https://nodekit.io/docs/index.html#iOS-and-MacOS-platforms
+https://github.com/nodekit-io/nodekit-android
+
+
+# MPD and fzf
+https://github.com/junegunn/fzf/wiki/Examples#mpd
+
+
+
+# Can use JS to write gnome extenstions!
+https://github.com/N-Yuki/gnome-shell-extension-workspace-isolated-dash/blob/master/workspace-isolated-dash/extension.js
+--- Hey what if we built a DM based on Vue ;)
+Fully reactive.  Might even go well with nix.
+
+
+# Way to write mac automator scripts in js.
+dig futher this was just what let me know it was possible.
+https://github.com/junegunn/fzf/wiki/On-MacVim-with-iTerm2
+Here is JavaScript (JXA) mutation (by @chew-z):
+
+#!/usr/bin/env osascript -l JavaScript
+
+
+
+
+## linux-admin-made-easy
+http://www.tldp.org/LDP/lame/LAME/linux-admin-made-easy/shadow-file-formats.html
+
+
+
+
+To install OMF theme with fisher:
+
+fisher omf/plugin-<name-of-theme>
+fisher omf/theme-<name-of-theme>
+
+fisher ls-remote
+fisher ls
+
+
+# FZF
+Ctrl-t	Ctrl-f	Find a file.
+Ctrl-r	Ctrl-r	Similar to ^
+Ctrl-x	Alt-x	Does the reverse isearch, and immediately executes command.
+Alt-c	Alt-o	cd into sub-directories (recursively searched).
+Alt-Shift-c	Alt-Shift-o	cd into sub-directories, including hidden ones.
+
+
+
+https://github.com/JorgeBucaran/fish-shell-cookbook
+
+
+
+set foo 42
+The set builtin accepts the following flags to explicitly declare the scope of the variable:
+
+-l, --local: available only to the innermost block
+-g, --global: available outside blocks and by other functions
+-U, --universal: shared between all fish sessions and persisted across restarts of the shell
+-x, --export: available to any child process spawned in the current session
+
+
+
+
+
+thefuck issue
+
+https://github.com/fisherman/fisherman/issues/408
+
+
+
+~/.config/fish/functions/fish_user_key_bindings.fish
+prob go with config.fish instead
+
+
+
+
+
+Vuw multiselect had a great development flow tools UX. Copy that for our template.
