@@ -72,27 +72,37 @@ To get started just skip ldap, use local user accounts, use one-off passwords fo
 
 # RESIZE RHEL 7 SWAP
 
-su
+## Reduce root LV Size
+
+Boot Centos Live
+
+```
+sudo su -
+lsblk; df -HT
+vgchange -a y  											  # Load LVM volumes
+umount /dev/mapper/rhel-root          # If necc
+e2fsck -fy /dev/mapper/rhel-root      # Check file system
+resize2fs /dev/mapper/rhel-root 41G   # Resize FS to 41GB !!Should be smaller than target!!
+lvreduce -L 42G /dev/mapper/rhel-root # Resize LV to 42GB
+resize2fs /dev/centos/var             # Expand FS to fit LV
+```
+
+## Expand Swap Space
+
+(Calling `swapoff` online is super slow)
+
+Boot into regular machine.
+
+```
+sudo su
 swapoff -v /dev/mapper/rhel-swap
 lvm lvresize /dev/mapper/rhel-swap -L +8G
 mkswap /dev/mapper/rhel-swap
 swapon -va
 cat /proc/swaps && free
+```
 
 [test](https://www.centos.org/docs/5/html/5.1/Deployment_Guide/s2-swap-extending-lvm2.html)
-
-
-# (Safer) From Boot Iso
-
-Boot Manjaro
-sudo su -
-lsblk
-cryptsetup luksOpen /dev/sdaXXX cryptdisk
-gparted
-
-https://medium.com/@tbeach/resize-an-encrypted-partition-without-breaking-your-linux-system-6ef475619745
-
-
 
 
 
