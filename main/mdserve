@@ -1,0 +1,134 @@
+
+
+
+
+
+Pretty much:  Expected: Staging and Prod should show same content. Content shown should be Norwegian Cruise Line Mastercard.
+Why do you think they wouldn't be synced?
+
+well it’s not that staging and prod should show the same content…. more like an explanation of why it’s different if they deployed the same content to prod
+
+i think it’s just a content issue, the way we handled regionalization when that was put in vs how it is now is different
+but a good ticket to get you to snoop around drupal a bit
+
+
+
+central problem that neccestates a sol like follows: if we store each symbol-day in a file we would end up with millions and filesystems crap out at those limits.  
+1. compress into fewer but much larger files
+2. use a fs that can handle it? seaweedfs
+- can now replicate much more easily.
+- can part out our files easily and rest easy knowing access is O(1)
+
+
+
+Extra concerns a naive custom build couldnt provide without work:
+- replication
+-
+
+Table 1
+Index:
+Cols: symbol, period_stored, start, end, data_file_path
+
+PeriodStored: monthly || weekly
+Start, End:
+	when monthly: mm-yyyy
+	when weekly:  ww-yyyy (ww = week number of year)
+
+
+SELECT *
+FROM employees
+WHERE hire_date >= '2014-01-01'
+AND hire_date <= '2014-12-31';
+
+------------------------------------
+
+https://github.com/chrislusf/seaweedfs
+https://github.com/chrislusf/seaweedfs/wiki/Benchmarks
+
+
+# Use Collections
+
+curl http://master:9333/dir/assign?collection=future_es
+curl http://master:9333/dir/assign?collection=stock_aapl
+curl http://master:9333/dir/assign?collection=crypto_ethusd
+
+Each collection will have its dedicated volumes, and they will not share the same volume.
+- Use this to keep data likely to be read sequentially together. (collect by symbol)
+- Will of course add additional volumes for single collection if first volume is full.
+
+
+# Logging
+
+recommened for prod so turn on in dev
+
+weed -v=2 master
+weed -log_dir=. volume
+
+
+
+# uploading large files
+
+weed upload -maxMB=64 the_file_name
+
+weed download the_meta_chunk_file_id
+
+If files are large and network is slow, the server will take time to read the file. Please increase the "-readTimeout=3" limit setting for volume server. It cut off the connection if uploading takes a longer time than the limit.
+
+
+> to store in memory later for realtime, and to upgrade this to a timeseries database, use some kv store with fast append.  periodic dump to disk. know what this should be a seperate app, that uses seaweedfs as a backend.
+
+> XFS was designed for very large files, and seaweedfs files are 32GB in size. So use XFS + LVM.
+
+> fid returned by seaweedfs can be stored as char(33) in db.
+
+> Issue a query to get fid given filepath.  The filepath is:
+/iqfeed/es/04122018/trades
+/iqfeed/es/04122018/5min.candles
+
+
+> curl http://localhost:9333/dir/lookup?volumeId=3
+{"locations":[{"publicUrl":"localhost:8080","url":"localhost:8080"}]}
+
+http://localhost:8080/3,01637037d6
+
+
+Says it took 30s to read 1mil files. 1GB total.
+Note that it seems slow, but we aren't reading a single file here but accessing many, which is def faster than it would be on xfs.
+- however the difference with what i could do manually by writing to single file seems big.  try it anyway?
+  -- bc rem our files will be around 100mb uncomp, which is much larger than 1kb they used. also our bottleneck will be network transfer rates anyway.
+- might be a benifit to have paths stored like we do here bc we can save to local system with same tags and not need additional code?
+
+Woudl still want a db i think.
+Purpose: 
+Queries?
+- get me all file ids 
+
+
+
+d := diskv.New(diskv.Options{
+	BasePath:     "my-data-dir",
+	Transform:    flatTransform,
+	CacheSizeMax: 1024 * 1024,
+})
+
+// Write three bytes to the key "alpha".
+	key := "alpha"
+	d.Write(key, []byte{'1', '2', '3'})
+
+
+https://www.npmjs.com/package/node-seaweedfs
+
+var weedClient = require("node-seaweedfs");
+ 
+var seaweedfs     = new weedClient({
+    server:		"localhost",
+    port:		9333
+});
+ 
+seaweedfs.write("./file.png").then(function(fileInfo) {
+    return seaweedfs.read(fileInfo.fid);
+}).then(function(Buffer) {
+    //do something with the buffer 
+}).catch(function(err) {
+    //error handling 
+});
